@@ -1,3 +1,11 @@
+#---
+# Excerpted from "Agile Web Development with Rails 7",
+# published by The Pragmatic Bookshelf.
+# Copyrights apply to this code. It may not be used to create training material,
+# courses, books, articles, and the like. Contact us if you are in doubt.
+# We make no guarantees that this code is fit for any purpose.
+# Visit https://pragprog.com/titles/rails7 for more book information.
+#---
 class LineItemsController < ApplicationController
   include CurrentCart
   before_action :set_cart, only: %i[ create ]
@@ -24,12 +32,11 @@ class LineItemsController < ApplicationController
   # POST /line_items or /line_items.json
   def create
     product = Product.find(params[:product_id])
-    @line_item = @cart.line_items.build(product: product)
+    @line_item = @cart.add_product(product)
 
     respond_to do |format|
       if @line_item.save
-        format.html { redirect_to cart_url(@line_item.cart),
-          notice: "Line item was successfully created." }
+        format.html { redirect_to cart_url(@line_item.cart) }
         format.json { render :show,
           status: :created, location: @line_item }
       else
@@ -39,8 +46,6 @@ class LineItemsController < ApplicationController
           status: :unprocessable_entity }
       end
     end
-
-    session[:counter] = 0
   end
 
   # PATCH/PUT /line_items/1 or /line_items/1.json
@@ -74,6 +79,7 @@ class LineItemsController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def line_item_params
-      params.require(:line_item).permit(:product_id, :cart_id)
+      params.require(:line_item).permit(:product_id)
     end
+  #...
 end
