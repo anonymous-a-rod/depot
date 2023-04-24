@@ -1,4 +1,6 @@
 class StoreController < ApplicationController
+  include CurrentCart
+  before_action :set_cart
   def index
     @products = Product.order(:title)
     if session[:counter].nil?
@@ -8,3 +10,4 @@ class StoreController < ApplicationController
     end
   end
 end
+
