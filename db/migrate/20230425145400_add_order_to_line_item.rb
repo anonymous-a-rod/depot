@@ -1,3 +1,4 @@
+#---
 # Excerpted from "Agile Web Development with Rails 7",
 # published by The Pragmatic Bookshelf.
 # Copyrights apply to this code. It may not be used to create training material,
@@ -5,12 +6,9 @@
 # We make no guarantees that this code is fit for any purpose.
 # Visit https://pragprog.com/titles/rails7 for more book information.
 #---
-class LineItem < ApplicationRecord
-  belongs_to :order, optional: true
-  belongs_to :product
-  belongs_to :cart, optional: true
-
-  def total_price
-    price * quantity
+class AddOrderToLineItem < ActiveRecord::Migration[7.0]
+  def change
+    add_reference :line_items, :order, null: true, foreign_key: true
+    change_column :line_items, :cart_id, :integer, null: true
   end
 end
