@@ -6,18 +6,10 @@
 # We make no guarantees that this code is fit for any purpose.
 # Visit https://pragprog.com/titles/rails7 for more book information.
 #---
-class User < ApplicationRecord
-  has_secure_password
+#encoding: utf-8
+I18n.default_locale = :en
 
-  after_destroy :ensure_an_admin_remains
-
-  class Error < StandardError
-  end
-
-  private
-    def ensure_an_admin_remains
-      if User.count.zero?
-        raise Error.new "Can't delete last user"
-      end
-    end     
-end
+LANGUAGES = [
+  ['English',                  'en'],
+  ["Espa&ntilde;ol".html_safe, 'es']
+]
