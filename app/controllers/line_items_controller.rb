@@ -6,66 +6,83 @@
 # We make no guarantees that this code is fit for any purpose.
 # Visit https://pragprog.com/titles/rails7 for more book information.
 #---
-require "test_helper"
+class LineItemsController < ApplicationController
+  skip_before_action :authorize, only: %i[ create ]
+  include CurrentCart
+  before_action :set_cart, only: %i[ create ]
+  before_action :set_line_item, only: %i[ show edit update destroy ]
 
-class LineItemsControllerTest < ActionDispatch::IntegrationTest
-  setup do
-    @line_item = line_items(:one)
+  # GET /line_items or /line_items.json
+  def index
+    @line_items = LineItem.all
   end
 
-  test "should get index" do
-    get line_items_url
-    assert_response :success
+  # GET /line_items/1 or /line_items/1.json
+  def show
   end
 
-  test "should get new" do
-    get new_line_item_url
-    assert_response :success
+  # GET /line_items/new
+  def new
+    @line_item = LineItem.new
   end
 
-  test "should create line_item" do
-    assert_difference("LineItem.count") do
-      post line_items_url, params: { product_id: products(:ruby).id }
+  # GET /line_items/1/edit
+  def edit
+  end
+
+  # POST /line_items or /line_items.json
+  def create
+    product = Product.find(params[:product_id])
+    @line_item = @cart.add_product(product)
+
+    respond_to do |format|
+      if @line_item.save
+        format.turbo_stream { @current_item = @line_item }
+        format.html { redirect_to store_index_url }
+        format.json { render :show,
+          status: :created, location: @line_item }
+      else
+        format.html { render :new,
+          status: :unprocessable_entity }
+        format.json { render json: @line_item.errors,
+          status: :unprocessable_entity }
+      end
+    end
+  end
+
+  # PATCH/PUT /line_items/1 or /line_items/1.json
+  def update
+    respond_to do |format|
+      if @line_item.update(line_item_params)
+        format.html { redirect_to line_item_url(@line_item), notice: "Line item was successfully updated." }
+        format.json { render :show, status: :ok, location: @line_item }
+      else
+        format.html { render :edit, status: :unprocessable_entity }
+        format.json { render json: @line_item.errors, status: :unprocessable_entity }
+      end
+    end
+  end
+
+  # DELETE /line_items/1 or /line_items/1.json
+  def destroy
+    @line_item.destroy
+
+    respond_to do |format|
+      format.html { redirect_to line_items_url, notice: "Line item was successfully destroyed." }
+      format.json { head :no_content }
+    end
+  end
+
+  private
+    # Use callbacks to share common setup or constraints between actions.
+    def set_line_item
+      @line_item = LineItem.find(params[:id])
     end
 
-    follow_redirect!
-
-    assert_select 'h2', 'Your Cart'
-    assert_select 'td', "Programming Ruby 1.9"
-  end
-
-  test "should show line_item" do
-    get line_item_url(@line_item)
-    assert_response :success
-  end
-
-  test "should get edit" do
-    get edit_line_item_url(@line_item)
-    assert_response :success
-  end
-
-  test "should update line_item" do
-    patch line_item_url(@line_item),
-      params: { line_item: { product_id: @line_item.product_id } }
-    assert_redirected_to line_item_url(@line_item)
-  end
-
-  test "should destroy line_item" do
-    assert_difference("LineItem.count", -1) do
-      delete line_item_url(@line_item)
+    # Only allow a list of trusted parameters through.
+    def line_item_params
+      params.require(:line_item).permit(:product_id)
     end
-
-    assert_redirected_to line_items_url
-  end
-
-  test "should create line_item via turbo-stream" do
-    assert_difference('LineItem.count') do
-      post line_items_url, params: { product_id: products(:ruby).id },
-        as: :turbo_stream
-    end 
-
-    assert_response :success
-    assert_match /<tr class="line-item-highlight">/, @response.body
-  end
+  #...
 end
 
